@@ -71,6 +71,7 @@ from hermes_state_prune_rewrite import SessionPruneRewriteMixin
 from hermes_state_api_content import SessionApiContentMixin
 from hermes_state_coverage import SessionCoverageMixin
 from hermes_state_rewind import SessionRewindMixin
+from hermes_state_fork import SessionForkMixin
 from hermes_state_wal import (
     _WAL_INCOMPAT_MARKERS, _on_disk_journal_mode, apply_database_pragmas, apply_wal_with_fallback,
 )
@@ -467,6 +468,7 @@ class SessionDB(
     SessionGatewayMixin, SessionMaintenanceMixin, SessionUsageMixin, SessionTitlesMixin,
     SessionMessagesMixin, SessionPruneRewriteMixin, SessionApiContentMixin, SessionCoverageMixin, SessionRewindMixin, SessionProfileRepairMixin,
     SessionPromptRefreshMixin,
+    SessionForkMixin,
 ):
     """SQLite-backed session storage with FTS5 search; many reader threads, one writer (WAL)."""
 
