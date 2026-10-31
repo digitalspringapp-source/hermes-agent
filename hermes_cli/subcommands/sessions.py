@@ -298,6 +298,21 @@ def build_sessions_parser(subparsers, *, cmd_sessions: Callable) -> None:
     sessions_pinned = sessions_subparsers.add_parser("pinned", help="List pinned sessions")
     add_json_flag(sessions_pinned, "Emit machine-readable JSON (for backup/restore scripting)")
 
+    sessions_fork = sessions_subparsers.add_parser(
+        "fork", help="Fork a session: copy its active transcript into a NEW session (parent untouched)",
+        description="Copy the active transcript of a session into a NEW session id, leaving the "
+            "parent byte-identical (unlike /undo, which deactivates rows in place). The fork can "
+            "use another model and starts its own conversation lineage, so both paths stay "
+            "resumable and comparable.")
+    sessions_fork.add_argument("session_id", help="Session ID or unique prefix to fork")
+    sessions_fork.add_argument(
+        "--at", dest="through_message_id", type=int, default=None,
+        help="Copy only up to this message row id (default: the active head)")
+    sessions_fork.add_argument(
+        "--model", default=None, help="Model for the fork (default: the parent's model)")
+    sessions_fork.add_argument("--title", default=None, help="Title for the fork")
+    add_json_flag(sessions_fork, "Emit machine-readable JSON")
+
     sessions_retitle = sessions_subparsers.add_parser(
         "retitle-skills", help="Re-title sessions whose auto-title came from a /skill's own text",
         description="Sessions opened with a /skill were auto-titled from the expanded "

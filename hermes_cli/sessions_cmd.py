@@ -1225,6 +1225,26 @@ def _cmd_repair_prompts(db, args):
     return 0
 
 
+def _cmd_fork(db, args):
+    resolved = db.resolve_session_id(args.session_id)
+    if not resolved:
+        return _not_found(args.session_id)
+    try:
+        result = db.fork_session(
+            resolved, through_message_id=args.through_message_id,
+            model=args.model, title=args.title)
+    except ValueError as e:  # unknown session, or a boundary that is not an active row
+        print(f"Error: {e}")
+        return 1
+    if getattr(args, "json", False):
+        print(json.dumps(result, indent=2))
+    else:
+        print(f"Forked {resolved} -> {result['session_id']} "
+              f"({result['copied_messages']} messages copied)")
+        print(f"Resume it with: hermes --resume {result['session_id']}")
+    return 0
+
+
 def _cmd_stats(db, args):
     reader = _surface_reader(db)
     print(f"Total sessions: {db.session_count()}\nTotal messages: {db.message_count()}")
@@ -1266,6 +1286,7 @@ _DB_HANDLERS = {
     "retitle-skills": _cmd_retitle_skills, "browse": _cmd_browse, "optimize": _cmd_optimize,
     "clean-markers": _cmd_clean_markers, "optimize-storage": _cmd_optimize_storage,
     "repair-routing": _cmd_repair_routing, "repair-prompts": _cmd_repair_prompts, "stats": _cmd_stats,
+    "fork": _cmd_fork,
 }
 
 
