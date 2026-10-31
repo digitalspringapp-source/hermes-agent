@@ -6659,6 +6659,15 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, BaseP
             pending[key] = event
             return
         existing.absorb_reply_expected(event)
+        # Un indicateur par piece jointe, complete par None (= inconnu, accepte par
+        # l'admission) AVANT d'etendre : sans cela un album de documents donne
+        # 2 URLs pour 1 seul indicateur et l'evenement est refuse
+        # (invalid_params: media_text_inlined_length). Meme regle que
+        # gateway/platforms/base.merge_pending_message_event.
+        def _padded_inline(msg):
+            flags = list(getattr(msg, "media_text_inlined", None) or [])
+            return flags + [None] * (len(msg.media_urls) - len(flags))
+        existing.media_text_inlined = _padded_inline(existing) + _padded_inline(event)
         existing.media_urls.extend(event.media_urls)
         existing.media_types.extend(event.media_types)
         if event.text:
