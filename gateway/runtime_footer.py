@@ -15,6 +15,13 @@ import os
 from typing import Any, Iterable, Optional
 
 _DEFAULT_FIELDS: tuple[str, ...] = ("model", "context_pct", "cwd")
+
+# Seuils d'affichage du footer (règle Karim 02/09 — personnalisation locale, réappliquée
+# à chaque montée de version : l'amont ne porte pas cette logique).
+# contexte < 50 % -> footer absent ; 50-79 % -> footer avec le % ;
+# >= 80 % -> message invitant à lancer le pre-new avant un /new.
+_FOOTER_SHOW_AT_PCT = 50
+_FOOTER_WARN_AT_PCT = 80
 _SEP = " · "
 
 
@@ -81,8 +88,17 @@ def format_runtime_footer(*, model: Optional[str], context_tokens: int,
     """Render the footer line, or "" if no fields have data. Fields whose data is missing (and
     unknown field names) are skipped silently — a partial footer beats ``?%`` or empty slots."""
     def context_pct() -> str:
+        # Règle Karim 02/09 : le champ context_pct pilote l'affichage de TOUT le footer.
         if context_length and context_length > 0 and context_tokens >= 0:
-            return f"{max(0, min(100, round((context_tokens / context_length) * 100)))}%"
+            pct = max(0, min(100, round((context_tokens / context_length) * 100)))
+            if pct < _FOOTER_SHOW_AT_PCT:
+                return ""  # contexte < 50 % : footer absent
+            if pct >= _FOOTER_WARN_AT_PCT:
+                return (
+                    f"⚠️ Contexte : {pct}% — demande à ton agent de lancer le pre-new, "
+                    "puis attends la fin de son exécution avant de faire un /new"
+                )
+            return f"Contexte : {pct}%"
         return ""
 
     def served() -> str:
