@@ -239,6 +239,14 @@ _SNAPSHOTS: tuple[tuple[str, Optional[str], str, dict], ...] = (
         "amazon.nova-pro": ("0.80", "3.20"), "amazon.nova-lite": ("0.06", "0.24"), "amazon.nova-micro": ("0.035", "0.14"),
     }),
     ("minimax", None, "minimax-pricing-2026-04", {"minimax-m2.7": ("0.30", "1.20")}),
+    # z.ai (Zhipu). glm-4.5-flash est le modele GRATUIT du bus inter-agents et du repli
+    # fair-use (cf. proxy_central, regle 10/08). Sans entree ici, l'agent ecrit
+    # cost_status="unknown" et la mesure le lit comme « 0 $ non trace » : 663 sessions
+    # du profil glm-worker etaient comptees aveugles au 02/11/2026 alors que le cout
+    # reel est zero. Tarifer a 0 rend le statut "estimated" a 0 $, donc trace.
+    ("custom:zai", "https://docs.z.ai/guides/overview/pricing", "zai-pricing-2026-10-01", {
+        "glm-4.5-flash": ("0", "0", "0"),
+    }),
     ("minimax-cn", None, "minimax-pricing-2026-04", {"minimax-m2.7": ("0.30", "1.20")}),
     # Fireworks AI serverless (Standard tier) publishes a per-model cached_input
     # rate (→ cache_read) but no separate cache_write rate. Fast/turbo tiers are
